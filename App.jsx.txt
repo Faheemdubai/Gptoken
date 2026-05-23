@@ -1,0 +1,415 @@
+ import { useState } from "react";
+
+const translations = {
+  en: {
+    appName: "PropToken",
+    tagline: "Real Estate. Tokenized. For Everyone.",
+    nav: { dashboard: "Dashboard", marketplace: "Marketplace", list: "List Property", portfolio: "Portfolio" },
+    dashboard: {
+      title: "Investor Dashboard",
+      totalInvested: "Total Invested",
+      activeTokens: "Active Tokens",
+      totalReturn: "Total Return",
+      properties: "Properties Owned",
+    },
+    marketplace: {
+      title: "Token Marketplace",
+      buy: "Buy Tokens",
+      sell: "Sell Tokens",
+      pricePerToken: "Price/Token",
+      available: "Available",
+      totalValue: "Total Value",
+      funded: "Funded",
+    },
+    listProperty: {
+      title: "List New Property",
+      name: "Property Name",
+      location: "Location",
+      totalValue: "Total Value (PKR)",
+      totalTokens: "Total Tokens",
+      description: "Description",
+      documents: "Upload Documents",
+      submit: "Tokenize Property",
+      type: "Property Type",
+      types: ["Residential", "Commercial", "Industrial", "Agricultural"],
+    },
+    payment: { title: "Payment Gateway", method: "Payment Method", amount: "Amount", confirm: "Confirm Payment", methods: ["Bank Transfer", "JazzCash", "EasyPaisa", "Credit Card"] },
+    portfolio: { title: "My Portfolio", property: "Property", tokens: "Tokens", value: "Value", return: "Return" },
+  },
+  ur: {
+    appName: "???? ????",
+    tagline: "???????? ???????? ?? ?? ????",
+    nav: { dashboard: "??? ????", marketplace: "?????? ????", list: "??????? ??? ????", portfolio: "???? ?????" },
+    dashboard: {
+      title: "??????? ??? ????",
+      totalInvested: "?? ?????? ????",
+      activeTokens: "???? ?????",
+      totalReturn: "?? ?????",
+      properties: "????????",
+    },
+    marketplace: {
+      title: "???? ?????? ????",
+      buy: "???? ??????",
+      sell: "???? ?????",
+      pricePerToken: "????/????",
+      available: "??????",
+      totalValue: "?? ????",
+      funded: "????",
+    },
+    listProperty: {
+      title: "??? ??????? ??? ????",
+      name: "??????? ?? ???",
+      location: "????",
+      totalValue: "?? ???? (????)",
+      totalTokens: "?? ?????",
+      description: "?????",
+      documents: "????????? ????? ????",
+      submit: "??????? ??????? ????",
+      type: "??????? ?? ???",
+      types: ["??????", "??????", "?????", "????"],
+    },
+    payment: { title: "????? ??? ??", method: "??????? ?? ?????", amount: "???", confirm: "??????? ?? ????? ????", methods: ["???? ???????", "??? ???", "???? ????", "????? ????"] },
+    portfolio: { title: "???? ???? ?????", property: "???????", tokens: "?????", value: "????", return: "?????" },
+  },
+};
+
+const properties = [
+  { id: 1, name: "Green Valley Residency", nameUr: "???? ???? ?????", location: "Lahore, DHA Phase 6", locationUr: "?????? ?? ??? ?? ??? 6", totalValue: 25000000, totalTokens: 2500, soldTokens: 1875, pricePerToken: 10000, returnRate: 12.4, type: "Residential", image: "???", docs: ["Title Deed", "NOC", "Survey Report"] },
+  { id: 2, name: "Metro Commercial Hub", nameUr: "????? ????? ??", location: "Karachi, Clifton Block 8", locationUr: "?????? ????? ???? 8", totalValue: 80000000, totalTokens: 8000, soldTokens: 5600, pricePerToken: 10000, returnRate: 15.2, type: "Commercial", image: "??", docs: ["Title Deed", "NOC", "Fire Certificate"] },
+  { id: 3, name: "Islamabad Heights", nameUr: "????? ???? ?????", location: "Islamabad, F-7/2", locationUr: "????? ????? ???-7/2", totalValue: 45000000, totalTokens: 4500, soldTokens: 900, pricePerToken: 10000, returnRate: 11.8, type: "Residential", image: "??", docs: ["Title Deed", "CDA Approval"] },
+];
+
+const portfolioData = [
+  { id: 1, name: "Green Valley Residency", nameUr: "???? ???? ?????", tokens: 50, value: 500000, return: 8.3 },
+  { id: 2, name: "Metro Commercial Hub", nameUr: "????? ????? ??", tokens: 20, value: 200000, return: 12.1 },
+];
+
+export default function App() {
+  const [lang, setLang] = useState("en");
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [showPayment, setShowPayment] = useState(false);
+  const [tokenAmount, setTokenAmount] = useState(1);
+  const [paymentMethod, setPaymentMethod] = useState(0);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [listForm, setListForm] = useState({ name: "", location: "", totalValue: "", totalTokens: "", description: "", type: 0 });
+  const [listed, setListed] = useState(false);
+
+  const t = translations[lang];
+  const isUrdu = lang === "ur";
+
+  const fmt = (n) => n.toLocaleString("en-PK");
+
+  const handleBuy = (prop) => {
+    setSelectedProperty(prop);
+    setTokenAmount(1);
+    setShowPayment(true);
+    setPaymentSuccess(false);
+  };
+
+  const handleConfirmPayment = () => {
+    setPaymentSuccess(true);
+    setTimeout(() => { setShowPayment(false); setPaymentSuccess(false); }, 2200);
+  };
+
+  const handleList = () => {
+    setListed(true);
+    setTimeout(() => setListed(false), 2500);
+    setListForm({ name: "", location: "", totalValue: "", totalTokens: "", description: "", type: 0 });
+  };
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "linear-gradient(135deg, #0a0e1a 0%, #0d1b2e 50%, #0a1628 100%)",
+      fontFamily: isUrdu ? "'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif" : "'Playfair Display', Georgia, serif",
+      color: "#e8dcc8",
+      direction: isUrdu ? "rtl" : "ltr",
+    }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0a0e1a; } ::-webkit-scrollbar-thumb { background: #c9a84c; border-radius: 3px; }
+        .nav-btn { background: none; border: none; cursor: pointer; padding: 10px 18px; border-radius: 8px; font-size: 14px; transition: all 0.2s; color: #8a9bb8; }
+        .nav-btn:hover { background: rgba(201,168,76,0.1); color: #c9a84c; }
+        .nav-btn.active { background: rgba(201,168,76,0.15); color: #c9a84c; border-bottom: 2px solid #c9a84c; }
+        .card { background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)); border: 1px solid rgba(201,168,76,0.15); border-radius: 16px; padding: 24px; backdrop-filter: blur(10px); }
+        .gold-btn { background: linear-gradient(135deg, #c9a84c, #e8c96a); border: none; color: #0a0e1a; font-weight: 700; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .gold-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(201,168,76,0.4); }
+        .outline-btn { background: transparent; border: 1.5px solid rgba(201,168,76,0.5); color: #c9a84c; font-weight: 600; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .outline-btn:hover { background: rgba(201,168,76,0.1); border-color: #c9a84c; }
+        .input-field { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; padding: 12px 16px; color: #e8dcc8; font-size: 14px; outline: none; transition: border 0.2s; }
+        .input-field:focus { border-color: #c9a84c; }
+        .progress-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #c9a84c, #e8c96a); border-radius: 3px; transition: width 0.5s ease; }
+        .stat-card { background: linear-gradient(135deg, rgba(201,168,76,0.08), rgba(201,168,76,0.02)); border: 1px solid rgba(201,168,76,0.2); border-radius: 14px; padding: 20px; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
+        .modal { background: linear-gradient(135deg, #0d1b2e, #0a1628); border: 1px solid rgba(201,168,76,0.3); border-radius: 20px; padding: 32px; width: 90%; max-width: 440px; }
+        .success-anim { animation: popIn 0.4s ease; }
+        @keyframes popIn { 0% { transform: scale(0.7); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        select option { background: #0d1b2e; }
+      `}</style>
+
+      {/* Header */}
+      <header style={{ borderBottom: "1px solid rgba(201,168,76,0.15)", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64, background: "rgba(10,14,26,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 36, height: 36, background: "linear-gradient(135deg, #c9a84c, #e8c96a)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>???</div>
+          <span style={{ fontSize: 20, fontWeight: 700, color: "#c9a84c", letterSpacing: 1 }}>{t.appName}</span>
+        </div>
+        <nav style={{ display: "flex", gap: 4 }}>
+          {["dashboard", "marketplace", "list", "portfolio"].map(tab => (
+            <button key={tab} className={nav-btn${activeTab === tab ? " active" : ""}} style={{ fontFamily: "inherit" }} onClick={() => setActiveTab(tab)}>
+              {t.nav[tab]}
+            </button>
+          ))}
+        </nav>
+        <button onClick={() => setLang(lang === "en" ? "ur" : "en")} style={{ background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.3)", color: "#c9a84c", padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+          {lang === "en" ? "????" : "English"}
+        </button>
+      </header>
+
+      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px" }}>
+
+        {/* DASHBOARD */}
+        {activeTab === "dashboard" && (
+          <div>
+            <h1 style={{ fontSize: 28, fontWeight: 700, color: "#c9a84c", marginBottom: 8 }}>{t.dashboard.title}</h1>
+            <p style={{ color: "#8a9bb8", marginBottom: 28, fontSize: 14 }}>{isUrdu ? "??? ?????! ?? ?? ?????? ???? ?? ?????" : "Welcome back! Here's your investment overview"}</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
+              {[
+                { label: t.dashboard.totalInvested, value: "? 7,00,000", icon: "??", change: "+8.3%" },
+                { label: t.dashboard.activeTokens, value: "70", icon: "??", change: "+2 this month" },
+                { label: t.dashboard.totalReturn, value: "? 58,100", icon: "??", change: "+12.4%" },
+                { label: t.dashboard.properties, value: "2", icon: "??", change: "Active" },
+              ].map((s, i) => (
+                <div key={i} className="stat-card">
+                  <div style={{ fontSize: 26, marginBottom: 8 }}>{s.icon}</div>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: "#e8dcc8", marginBottom: 4 }}>{s.value}</div>
+                  <div style={{ fontSize: 12, color: "#8a9bb8", marginBottom: 6 }}>{s.label}</div>
+                  <span className="badge" style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80", fontSize: 11 }}>{s.change}</span>
+                </div>
+              ))}
+            </div>
+
+            <h2 style={{ fontSize: 18, fontWeight: 600, color: "#c9a84c", marginBottom: 16 }}>
+              {isUrdu ? "????? ????????" : "Featured Properties"}
+            </h2>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20 }}>
+              {properties.map(p => (
+                <div key={p.id} className="card" style={{ cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(201,168,76,0.12)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
+                >
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>{p.image}</div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: "#e8dcc8" }}>{isUrdu ? p.nameUr : p.name}</h3>
+                    <span className="badge" style={{ background: "rgba(201,168,76,0.1)", color: "#c9a84c" }}>{p.type}</span>
+                  </div>
+                  <p style={{ color: "#8a9bb8", fontSize: 13, marginBottom: 12 }}>?? {isUrdu ? p.locationUr : p.location}</p>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+                    <div><div style={{ fontSize: 11, color: "#8a9bb8" }}>{t.marketplace.pricePerToken}</div><div style={{ fontWeight: 600, color: "#c9a84c" }}>? {fmt(p.pricePerToken)}</div></div>
+                    <div style={{ textAlign: "right" }}><div style={{ fontSize: 11, color: "#8a9bb8" }}>{isUrdu ? "?????? ?????" : "Annual Return"}</div><div style={{ fontWeight: 600, color: "#4ade80" }}>{p.returnRate}%</div></div>
+                  </div>
+                  <div className="progress-bar" style={{ marginBottom: 8 }}>
+                    <div className="progress-fill" style={{ width: ${(p.soldTokens / p.totalTokens) * 100}% }} />
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#8a9bb8", marginBottom: 16 }}>
+                    <span>{Math.round((p.soldTokens / p.totalTokens) * 100)}% {t.marketplace.funded}</span>
+                    <span>{fmt(p.totalTokens - p.soldTokens)} {t.marketplace.available}</span>
+                  </div>
+                  <button className="gold-btn" style={{ width: "100%", fontFamily: "inherit" }} onClick={() => handleBuy(p)}>{t.marketplace.buy}</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* MARKETPLACE */}
+        {activeTab === "marketplace" && (
+          <div>
+            <h1 style={{ fontSize: 28, fontWeight: 700, color: "#c9a84c", marginBottom: 8 }}>{t.marketplace.title}</h1>
+            <p style={{ color: "#8a9bb8", marginBottom: 28, fontSize: 14 }}>{isUrdu ? "???? ?????? ??? ?????" : "Buy and sell real estate tokens"}</p>
+            <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+              <input className="input-field" style={{ maxWidth: 280 }} placeholder={isUrdu ? "?? ??????? ???? ????" : "?? Search properties"} />
+              <select className="input-field" style={{ maxWidth: 160 }}>
+                <option>{isUrdu ? "???? ?????" : "All Types"}</option>
+                <option>{isUrdu ? "??????" : "Residential"}</option>
+                <option>{isUrdu ? "??????" : "Commercial"}</option>
+              </select>
+            </div>
+            <div style={{ display: "grid", gap: 16 }}>
+              {properties.map(p => (
+                <div key={p.id} className="card" style={{ display: "grid", gridTemplateColumns: "auto 1fr auto auto", alignItems: "center", gap: 20 }}>
+                  <div style={{ fontSize: 36 }}>{p.image}</div>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <h3 style={{ fontSize: 16, fontWeight: 700 }}>{isUrdu ? p.nameUr : p.name}</h3>
+                      <span className="badge" style={{ background: "rgba(201,168,76,0.1)", color: "#c9a84c" }}>{p.type}</span>
+                    </div>
+                    <p style={{ color: "#8a9bb8", fontSize: 13, marginBottom: 8 }}>?? {isUrdu ? p.locationUr : p.location}</p>
+                    <div className="progress-bar" style={{ width: 200 }}>
+                      <div className="progress-fill" style={{ width: ${(p.soldTokens / p.totalTokens) * 100}% }} />
+                    </div>
+                    <span style={{ fontSize: 11, color: "#8a9bb8" }}>{Math.round((p.soldTokens / p.totalTokens) * 100)}% {t.marketplace.funded}</span>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "#c9a84c" }}>? {fmt(p.pricePerToken)}</div>
+                    <div style={{ fontSize: 11, color: "#8a9bb8" }}>{t.marketplace.pricePerToken}</div>
+                    <div style={{ fontSize: 13, color: "#4ade80", marginTop: 4 }}>? {p.returnRate}%</div>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <button className="gold-btn" style={{ fontFamily: "inherit" }} onClick={() => handleBuy(p)}>{t.marketplace.buy}</button>
+                    <button className="outline-btn" style={{ fontFamily: "inherit" }}>{t.marketplace.sell}</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* LIST PROPERTY */}
+        {activeTab === "list" && (
+          <div style={{ maxWidth: 640 }}>
+            <h1 style={{ fontSize: 28, fontWeight: 700, color: "#c9a84c", marginBottom: 8 }}>{t.listProperty.title}</h1>
+            <p style={{ color: "#8a9bb8", marginBottom: 28, fontSize: 14 }}>{isUrdu ? "???? ??????? ?? ??????? ???? ??? ?????? ???? ???? ????" : "Tokenize your property and raise investment"}</p>
+            {listed && (
+              <div className="success-anim" style={{ background: "rgba(74,222,128,0.1)", border: "1px solid #4ade80", borderRadius: 12, padding: 16, marginBottom: 20, color: "#4ade80", textAlign: "center", fontWeight: 600 }}>
+                ? {isUrdu ? "??????? ??????? ?? ??????? ?? ?? ???!" : "Property successfully tokenized!"}
+              </div>
+            )}
+            <div className="card" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              <div>
+                <label style={{ fontSize: 13, color: "#8a9bb8", display: "block", marginBottom: 6 }}>{t.listProperty.name}</label>
+                <input className="input-field" value={listForm.name} onChange={e => setListForm({ ...listForm, name: e.target.value })} placeholder={isUrdu ? "????: ???? ???? ????????" : "e.g. Green Valley Apartment"} />
+              </div>
+              <div>
+                <label style={{ fontSize: 13, color: "#8a9bb8", display: "block", marginBottom: 6 }}>{t.listProperty.type}</label>
+                <select className="input-field" value={listForm.type} onChange={e => setListForm({ ...listForm, type: e.target.value })}>
+                  {t.listProperty.types.map((tp, i) => <option key={i} value={i}>{tp}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 13, color: "#8a9bb8", display: "block", marginBottom: 6 }}>{t.listProperty.location}</label>
+                <input className="input-field" value={listForm.location} onChange={e => setListForm({ ...listForm, location: e.target.value })} placeholder={isUrdu ? "????: ?????? ?????" : "e.g. Lahore, Gulberg III"} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div>
+                  <label style={{ fontSize: 13, color: "#8a9bb8", display: "block", marginBottom: 6 }}>{t.listProperty.totalValue}</label>
+                  <input className="input-field" type="number" value={listForm.totalValue} onChange={e => setListForm({ ...listForm, totalValue: e.target.value })} placeholder="50,000,000" />
+                </div>
+                <div>
+                  <label style={{ fontSize: 13, color: "#8a9bb8", display: "block", marginBottom: 6 }}>{t.listProperty.totalTokens}</label>
+                  <input className="input-field" type="number" value={listForm.totalTokens} onChange={e => setListForm({ ...listForm, totalTokens: e.target.value })} placeholder="5000" />
+                </div>
+              </div>
+              {listForm.totalValue && listForm.totalTokens && (
+                <div style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: 10, padding: 14, fontSize: 13 }}>
+                  <span style={{ color: "#8a9bb8" }}>{t.marketplace.pricePerToken}: </span>
+                  <span style={{ color: "#c9a84c", fontWeight: 700 }}>? {fmt(Math.round(listForm.totalValue / listForm.totalTokens))}</span>
+                </div>
+              )}
+              <div>
+                <label style={{ fontSize: 13, color: "#8a9bb8", display: "block", marginBottom: 6 }}>{t.listProperty.description}</label>
+                <textarea className="input-field" rows={4} value={listForm.description} onChange={e => setListForm({ ...listForm, description: e.target.value })} placeholder={isUrdu ? "??????? ?? ???? ????? ?????..." : "Describe your property in detail..."} style={{ resize: "vertical" }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 13, color: "#8a9bb8", display: "block", marginBottom: 10 }}>{t.listProperty.documents}</label>
+                <div style={{ border: "2px dashed rgba(201,168,76,0.2)", borderRadius: 12, padding: 24, textAlign: "center", cursor: "pointer" }} onMouseEnter={e => e.currentTarget.style.borderColor = "#c9a84c"} onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(201,168,76,0.2)"}>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>??</div>
+                  <div style={{ color: "#8a9bb8", fontSize: 13 }}>{isUrdu ? "?????? ???? ???? ???? ?? ??? ????" : "Drop files here or click to upload"}</div>
+                  <div style={{ color: "#5a6b84", fontSize: 11, marginTop: 4 }}>PDF, JPG, PNG (max 10MB)</div>
+                </div>
+                <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                  {["Title Deed", "NOC", "Survey Report"].map(doc => (
+                    <span key={doc} className="badge" style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80", padding: "4px 10px" }}>? {doc}</span>
+                  ))}
+                </div>
+              </div>
+              <button className="gold-btn" style={{ fontFamily: "inherit", fontSize: 15, padding: "14px" }} onClick={handleList}>
+                ??? {t.listProperty.submit}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* PORTFOLIO */}
+        {activeTab === "portfolio" && (
+          <div>
+            <h1 style={{ fontSize: 28, fontWeight: 700, color: "#c9a84c", marginBottom: 8 }}>{t.portfolio.title}</h1>
+            <p style={{ color: "#8a9bb8", marginBottom: 28, fontSize: 14 }}>{isUrdu ? "?? ?? ???? ?????? ????" : "All your investments in one place"}</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
+              <div className="stat-card"><div style={{ fontSize: 24 }}>??</div><div style={{ fontSize: 20, fontWeight: 700, color: "#e8dcc8", margin: "8px 0 4px" }}>? 7,00,000</div><div style={{ fontSize: 12, color: "#8a9bb8" }}>{isUrdu ? "?? ????" : "Total Value"}</div></div>
+              <div className="stat-card"><div style={{ fontSize: 24 }}>??</div><div style={{ fontSize: 20, fontWeight: 700, color: "#e8dcc8", margin: "8px 0 4px" }}>70</div><div style={{ fontSize: 12, color: "#8a9bb8" }}>{isUrdu ? "?? ?????" : "Total Tokens"}</div></div>
+              <div className="stat-card"><div style={{ fontSize: 24 }}>??</div><div style={{ fontSize: 20, fontWeight: 700, color: "#4ade80", margin: "8px 0 4px" }}>+10.5%</div><div style={{ fontSize: 12, color: "#8a9bb8" }}>{isUrdu ? "???? ?????" : "Avg Return"}</div></div>
+            </div>
+            <div className="card">
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid rgba(201,168,76,0.15)" }}>
+                    {[t.portfolio.property, t.portfolio.tokens, t.portfolio.value, t.portfolio.return, ""].map((h, i) => (
+                      <th key={i} style={{ padding: "10px 16px", fontSize: 12, color: "#8a9bb8", fontWeight: 600, textAlign: isUrdu ? "right" : "left" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {portfolioData.map(p => (
+                    <tr key={p.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                      <td style={{ padding: "16px", fontWeight: 600 }}>{isUrdu ? p.nameUr : p.name}</td>
+                      <td style={{ padding: "16px", color: "#c9a84c" }}>{p.tokens}</td>
+                      <td style={{ padding: "16px" }}>? {fmt(p.value)}</td>
+                      <td style={{ padding: "16px" }}><span style={{ color: "#4ade80" }}>+{p.return}%</span></td>
+                      <td style={{ padding: "16px" }}><button className="outline-btn" style={{ padding: "6px 14px", fontSize: 12, fontFamily: "inherit" }}>{t.marketplace.sell}</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* PAYMENT MODAL */}
+      {showPayment && selectedProperty && (
+        <div className="modal-overlay" onClick={() => setShowPayment(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            {paymentSuccess ? (
+              <div className="success-anim" style={{ textAlign: "center", padding: "20px 0" }}>
+                <div style={{ fontSize: 60, marginBottom: 16 }}>?</div>
+                <h2 style={{ color: "#4ade80", fontSize: 22, marginBottom: 8 }}>{isUrdu ? "??????? ??????!" : "Payment Successful!"}</h2>
+                <p style={{ color: "#8a9bb8" }}>{isUrdu ? "????? ?? ?? ?????? ??? ???? ?? ???" : "Tokens added to your portfolio"}</p>
+              </div>
+            ) : (
+              <>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: "#c9a84c", marginBottom: 4 }}>{t.payment.title}</h2>
+                <p style={{ color: "#8a9bb8", fontSize: 13, marginBottom: 24 }}>{isUrdu ? selectedProperty.nameUr : selectedProperty.name}</p>
+                <div style={{ marginBottom: 18 }}>
+                  <label style={{ fontSize: 13, color: "#8a9bb8", display: "block", marginBottom: 8 }}>{isUrdu ? "????? ?? ?????" : "Number of Tokens"}</label>
+                  <input className="input-field" type="number" min={1} max={selectedProperty.totalTokens - selectedProperty.soldTokens} value={tokenAmount} onChange={e => setTokenAmount(Math.max(1, parseInt(e.target.value) || 1))} />
+                </div>
+                <div style={{ background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.15)", borderRadius: 10, padding: 14, marginBottom: 18 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
+                    <span style={{ color: "#8a9bb8" }}>{tokenAmount} × ?{fmt(selectedProperty.pricePerToken)}</span>
+                    <span style={{ color: "#e8dcc8", fontWeight: 700 }}>? {fmt(tokenAmount * selectedProperty.pricePerToken)}</span>
+                  </div>
+                </div>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ fontSize: 13, color: "#8a9bb8", display: "block", marginBottom: 8 }}>{t.payment.method}</label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    {t.payment.methods.map((m, i) => (
+                      <div key={i} onClick={() => setPaymentMethod(i)} style={{ padding: "10px 14px", borderRadius: 10, border: 1.5px solid ${paymentMethod === i ? "#c9a84c" : "rgba(201,168,76,0.15)"}, background: paymentMethod === i ? "rgba(201,168,76,0.1)" : "transparent", cursor: "pointer", fontSize: 13, color: paymentMethod === i ? "#c9a84c" : "#8a9bb8", transition: "all 0.2s" }}>{m}</div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button className="outline-btn" style={{ flex: 1, fontFamily: "inherit" }} onClick={() => setShowPayment(false)}>{isUrdu ? "?????" : "Cancel"}</button>
+                  <button className="gold-btn" style={{ flex: 2, fontFamily: "inherit" }} onClick={handleConfirmPayment}>{t.payment.confirm}</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
